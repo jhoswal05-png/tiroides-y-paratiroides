@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Código Vital · Escape Room de la Tiroides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rose-950:#4a2138;
+    --rose-800:#7d3c58;
+    --rose-700:#96476a;
+    --rose-600:#c46b8f;
+    --rose-500:#dd8bab;
+    --rose-400:#e8a5c0;
+    --rose-300:#f0bdd2;
+    --rose-200:#f7d3e2;
+    --rose-100:#fdeaf1;
+    --rose-50:#fff6fa;
+    --gold:#cf9a63;
+    --gold-soft:#e8c99b;
+    --ok:#7fb997;
+    --ok-soft:#cdeadb;
+    --danger:#d96b82;
+    --danger-soft:#f6c9d4;
+    --card-shadow: 0 20px 50px -20px rgba(122,55,90,0.35);
+    --font-display:'Fredoka', system-ui, sans-serif;
+    --font-body:'Poppins', system-ui, sans-serif;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px); height:100%;}
+  body{
+    height:100%;
+    margin:0;
+    font-family:var(--font-body);
+    background:
+      radial-gradient(circle at 15% 10%, var(--rose-100), transparent 55%),
+      radial-gradient(circle at 85% 90%, var(--rose-200), transparent 50%),
+      linear-gradient(160deg, var(--rose-50) 0%, #fff 45%, var(--rose-100) 100%);
+    color:var(--rose-950);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    min-height:100%;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --card-shadow: 0 20px 50px -18px rgba(0,0,0,0.55);
+    }
+    body:not([data-theme="light"]){
+      background:
+        radial-gradient(circle at 15% 10%, #3a2130, transparent 55%),
+        radial-gradient(circle at 85% 90%, #2f1b28, transparent 50%),
+        linear-gradient(160deg, #241620 0%, #2a1a24 45%, #201319 100%);
+      color:#fbe4ee;
+    }
+    body:not([data-theme="light"]) .card{ background:#301c29; }
+    body:not([data-theme="light"]) .panel{ background:#3a2130; border-color:#5a3548;}
+    body:not([data-theme="light"]) .option{ background:#3a2130; border-color:#5a3548; color:#fbe4ee;}
+    body:not([data-theme="light"]) .option:hover{ background:#472a3b; }
+  }
+  :root[data-theme="dark"]{ --card-shadow: 0 20px 50px -18px rgba(0,0,0,0.55); }
+  body[data-theme="dark"]{
+    background:
+      radial-gradient(circle at 15% 10%, #3a2130, transparent 55%),
+      radial-gradient(circle at 85% 90%, #2f1b28, transparent 50%),
+      linear-gradient(160deg, #241620 0%, #2a1a24 45%, #201319 100%);
+    color:#fbe4ee;
+  }
+  body[data-theme="dark"] .card{ background:#301c29; }
+  body[data-theme="dark"] .panel{ background:#3a2130; border-color:#5a3548;}
+  body[data-theme="dark"] .option{ background:#3a2130; border-color:#5a3548; color:#fbe4ee;}
+  body[data-theme="dark"] .option:hover{ background:#472a3b; }
+
+  .stage{
+    width:100%;
+    max-width:640px;
+  }
+  .card{
+    background:#fff;
+    border-radius:28px;
+    box-shadow:var(--card-shadow);
+    padding:28px 26px 26px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--rose-200);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:-60px; right:-60px;
+    width:180px; height:180px;
+    background:radial-gradient(circle, var(--rose-200) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* ---- Header: hospital monitor strip ---- */
+  .monitor{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(135deg, var(--rose-950), #5c2c47);
+    border-radius:20px;
+    padding:14px 16px;
+    color:var(--rose-100);
+    position:relative;
+    z-index:1;
+  }
+  .heartbeat-wrap{
+    flex:0 0 auto;
+    width:72px; height:40px;
+  }
+  .heartbeat-wrap svg{ width:100%; height:100%; }
+  .heartbeat-line{
+    fill:none;
+    stroke:var(--gold-soft);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    animation: pulseDraw 2.6s linear infinite;
+  }
+  @keyframes pulseDraw{
+    0%{stroke-dashoffset:220;}
+    60%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:-10;}
+  }
+  .vitals{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:0;
+  }
+  .vitals-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:var(--font-display);
+    font-size:13px;
+    letter-spacing:0.02em;
+  }
+  .patient-name{ color:var(--rose-100); opacity:0.9; }
+  .timer{
+    font-family:var(--font-display);
+    font-size:18px;
+    font-weight:600;
+    color:var(--gold-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .timer.warning{ color:var(--danger-soft); animation: blink 1s step-start infinite; }
+  @keyframes blink{ 50%{ opacity:0.35; } }
+
+  .healthbar-track{
+    width:100%;
+    height:12px;
+    background:rgba(255,255,255,0.15);
+    border-radius:999px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.2);
+  }
+  .healthbar-fill{
+    height:100%;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--ok), var(--gold-soft));
+    transition: width 0.5s ease, background 0.5s ease;
+  }
+  .vitals-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+  }
+  .health-pct{ font-weight:600; color:var(--rose-100); }
+  .hearts{ display:flex; gap:4px; }
+  .heart{ font-size:15px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+  .heart.lost{ opacity:0.25; filter:grayscale(1); }
+
+  /* ---- Room progress ---- */
+  .room-progress{
+    display:flex;
+    gap:6px;
+    margin:16px 2px 4px;
+    position:relative;
+    z-index:1;
+  }
+  .room-dot{
+    flex:1;
+    height:6px;
+    border-radius:999px;
+    background:var(--rose-200);
+  }
+  .room-dot.done{ background:linear-gradient(90deg,var(--gold),var(--rose-500)); }
+  .room-dot.active{ background:var(--rose-400); }
+
+  .room-label{
+    font-family:var(--font-display);
+    font-size:12px;
+    color:var(--rose-700);
+    margin:10px 2px 2px;
+    font-weight:600;
+    position:relative; z-index:1;
+  }
+  .room-title{
+    font-family:var(--font-display);
+    font-size:22px;
+    font-weight:600;
+    color:var(--rose-950);
+    margin:2px 2px 16px;
+    position:relative; z-index:1;
+  }
+
+  /* ---- Question panel ---- */
+  .panel{
+    background:var(--rose-50);
+    border:1px solid var(--rose-200);
+    border-radius:18px;
+    padding:18px 18px 8px;
+    position:relative; z-index:1;
+  }
+  .q-count{
+    font-size:12px;
+    color:var(--rose-600);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .q-text{
+    font-size:17px;
+    line-height:1.5;
+    font-weight:500;
+    color:var(--rose-950);
+    margin-bottom:16px;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .option{
+    text-align:left;
+    padding:13px 16px;
+    border-radius:14px;
+    border:1.5px solid var(--rose-200);
+    background:#fff;
+    color:var(--rose-950);
+    font-family:var(--font-body);
+    font-size:14.5px;
+    cursor:pointer;
+    transition: all 0.15s ease;
+  }
+  .option:hover:not(:disabled){
+    border-color:var(--rose-400);
+    background:var(--rose-100);
+    transform: translateY(-1px);
+  }
+  .option:disabled{ cursor:default; }
+  .option.correct{
+    background:var(--ok-soft);
+    border-color:var(--ok);
+    color:#2f5e42;
+    font-weight:600;
+  }
+  .option.wrong{
+    background:var(--danger-soft);
+    border-color:var(--danger);
+    color:#8a2f42;
+    font-weight:600;
+  }
+  .feedback{
+    min-height:20px;
+    font-size:13px;
+    font-weight:600;
+    margin:-4px 0 14px;
+    padding:0 2px;
+  }
+  .feedback.ok{ color:#3f8158; }
+  .feedback.bad{ color:var(--danger); }
+
+  /* ---- Intro / End screens ---- */
+  .intro, .endscreen{
+    position:relative; z-index:1;
+    text-align:center;
+    padding:10px 4px 4px;
+  }
+  .intro h1, .endscreen h1{
+    font-family:var(--font-display);
+    font-size:26px;
+    font-weight:700;
+    color:var(--rose-950);
+    margin:10px 0 8px;
+  }
+  .intro p, .endscreen p{
+    font-size:14.5px;
+    line-height:1.6;
+    color:var(--rose-800);
+    margin:0 0 10px;
+  }
+  .badge-row{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:18px 0 22px;
+    flex-wrap:wrap;
+  }
+  .badge{
+    background:var(--rose-100);
+    border:1px solid var(--rose-200);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:12.5px;
+    color:var(--rose-800);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .big-emoji{ font-size:44px; line-height:1; }
+  button.primary{
+    font-family:var(--font-display);
+    font-size:16px;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(135deg, var(--rose-600), var(--gold));
+    border:none;
+    border-radius:14px;
+    padding:14px 30px;
+    cursor:pointer;
+    box-shadow:0 12px 24px -10px rgba(196,107,143,0.55);
+    transition: transform 0.15s ease;
+  }
+  button.primary:hover{ transform: translateY(-2px); }
+  button.primary:active{ transform: translateY(0); }
+  button.ghost{
+    font-family:var(--font-body);
+    font-size:13px;
+    font-weight:600;
+    color:var(--rose-700);
+    background:transparent;
+    border:1.5px solid var(--rose-300);
+    border-radius:12px;
+    padding:10px 18px;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .footnote{
+    text-align:center;
+    font-size:11px;
+    color:var(--rose-400);
+    margin-top:16px;
+    position:relative; z-index:1;
+  }
+  @media (max-width:420px){
+    .card{ padding:20px 16px 20px; }
+    .q-text{ font-size:16px; }
+    .intro h1, .endscreen h1{ font-size:22px; }
+  }
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+  <div class="card">
+
+    <!-- Monitor header, visible in game screens -->
+    <div class="monitor" id="monitor" style="display:none;">
+      <div class="heartbeat-wrap">
+        <svg viewBox="0 0 100 50" preserveAspectRatio="none">
+          <polyline class="heartbeat-line" points="0,25 20,25 27,10 34,42 41,5 48,25 100,25"/>
+        </svg>
+      </div>
+      <div class="vitals">
+        <div class="vitals-top">
+          <span class="patient-name">Paciente: Sala <span id="roomNumLabel">1</span> de 5</span>
+          <span class="timer" id="timer">10:00</span>
+        </div>
+        <div class="healthbar-track"><div class="healthbar-fill" id="healthFill"></div></div>
+        <div class="vitals-bottom">
+          <span class="health-pct"><span id="healthPct">100</span>% de estabilidad</span>
+          <span class="hearts" id="hearts"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTRO -->
+    <div class="intro" id="screen-intro">
+      <div class="big-emoji">🩺💗</div>
+      <h1>Código Vital: Escape Room de la Tiroides</h1>
+      <p>Un paciente está inestable y la causa está en su sistema endocrino. Tienes <strong>10 minutos</strong> para atravesar 4 salas de diagnóstico respondiendo correctamente y estabilizarlo antes de que se agote el tiempo.</p>
+      <div class="badge-row">
+        <span class="badge">⏱️ 10:00 min</span>
+        <span class="badge">🏥 4 salas</span>
+        <span class="badge">❤️ 3 vidas por sala</span>
+        <span class="badge">📈 Barra de estabilidad</span>
+      </div>
+      <button class="primary" onclick="startGame()">Iniciar la operación</button>
+    </div>
+
+    <!-- ROOM INTRO (between rooms) -->
+    <div class="intro" id="screen-roomintro" style="display:none;">
+      <div class="big-emoji" id="roomEmoji">🏥</div>
+      <div class="room-label" id="roomIntroLabel" style="text-align:center;">SALA <span></span> DE 4</div>
+      <h1 id="roomIntroTitle">Título de sala</h1>
+      <p id="roomIntroDesc">Descripción</p>
+      <p style="font-size:12.5px;color:var(--rose-600);">Tus 3 vidas se han restaurado para esta sala.</p>
+      <button class="primary" onclick="enterRoom()">Entrar a la sala</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" style="display:none;">
+      <div class="room-progress" id="roomProgress"></div>
+      <div class="room-label">SALA <span id="roomLabelNum"></span> DE 4</div>
+      <div class="room-title" id="roomTitleGame"></div>
+      <div class="panel">
+        <div class="q-count" id="qCount"></div>
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="qOptions"></div>
+        <div class="feedback" id="qFeedback"></div>
+      </div>
+    </div>
+
+    <!-- WIN -->
+    <div class="endscreen" id="screen-win" style="display:none;">
+      <div class="big-emoji">💗🎉</div>
+      <h1>¡Paciente estabilizado!</h1>
+      <p id="winText">Superaste las 4 salas y salvaste al paciente a tiempo.</p>
+      <div class="badge-row">
+        <span class="badge">⏱️ Tiempo restante: <span id="winTime"></span></span>
+        <span class="badge">📈 Estabilidad final: <span id="winHealth"></span>%</span>
+      </div>
+      <button class="primary" onclick="resetGame()">Jugar de nuevo</button>
+    </div>
+
+    <!-- LOSE -->
+    <div class="endscreen" id="screen-lose" style="display:none;">
+      <div class="big-emoji">🥀</div>
+      <h1 id="loseTitle">El paciente no resistió</h1>
+      <p id="loseText">La estabilidad llegó a 0%.</p>
+      <button class="primary" onclick="resetGame()">Intentar de nuevo</button>
+    </div>
+
+    <div class="footnote">Código Vital · Tiroides &amp; Paratiroides · quiz educativo</div>
+  </div>
+</div>
+
+<script>
+// ---------------- DATA ----------------
+const ROOMS = [
+  {
+    title: "Anatomía y generalidades",
+    emoji: "🦋",
+    desc: "Antes de tratar al paciente hay que ubicar las glándulas. Repasa la anatomía básica.",
+    questions: [
+      {
+        q: "¿Dónde se ubica la glándula tiroides?",
+        options: ["En el cuello, delante de la tráquea", "En el abdomen, junto al hígado", "Dentro del cráneo", "En la parte baja de la espalda"],
+        correct: 0
+      },
+      {
+        q: "¿Qué forma característica tiene la glándula tiroides?",
+        options: ["Forma de estrella", "Forma de mariposa", "Forma de anillo", "Forma de tubo recto"],
+        correct: 1
+      },
+      {
+        q: "¿Cuántas glándulas paratiroides tiene normalmente una persona?",
+        options: ["1", "2", "4", "8"],
+        correct: 2
+      }
+    ]
+  },
+  {
+    title: "Hormonas tiroideas",
+    emoji: "🧪",
+    desc: "El laboratorio necesita saber qué hormonas y minerales están en juego.",
+    questions: [
+      {
+        q: "¿Cuáles son las principales hormonas producidas por la tiroides?",
+        options: ["Insulina y glucagón", "T3 y T4", "Adrenalina y cortisol", "Estrógeno y progesterona"],
+        correct: 1
+      },
+      {
+        q: "¿Qué mineral es esencial para producir hormonas tiroideas?",
+        options: ["Hierro", "Potasio", "Yodo", "Magnesio"],
+        correct: 2
+      },
+      {
+        q: "¿Qué glándula estimula a la tiroides liberando TSH?",
+        options: ["La hipófisis (pituitaria)", "El páncreas", "La glándula suprarrenal", "El timo"],
+        correct: 0
+      }
+    ]
+  },
+  {
+    title: "Hipo e hipertiroidismo",
+    emoji: "⚖️",
+    desc: "El paciente muestra síntomas contradictorios. Hay que identificar el desequilibrio correcto.",
+    questions: [
+      {
+        q: "¿Cuál de estos es un síntoma común de hipotiroidismo?",
+        options: ["Cansancio y aumento de peso", "Pérdida de peso extrema", "Sudoración excesiva", "Taquicardia constante"],
+        correct: 0
+      },
+      {
+        q: "¿Cuál de estos es un síntoma común de hipertiroidismo?",
+        options: ["Sueño excesivo", "Piel muy seca", "Pérdida de peso y nerviosismo", "Estreñimiento"],
+        correct: 2
+      },
+      {
+        q: "La enfermedad de Graves está relacionada principalmente con:",
+        options: ["Hipertiroidismo", "Hipotiroidismo", "Diabetes tipo 1", "Osteoporosis"],
+        correct: 0
+      }
+    ]
+  },
+  {
+    title: "Paratiroides y calcio",
+    emoji: "🦴",
+    desc: "Ahora el foco está en las glándulas paratiroides y su papel regulando el calcio.",
+    questions: [
+      {
+        q: "¿Cuál es la función principal de la hormona paratiroidea (PTH)?",
+        options: ["Regular el azúcar en sangre", "Regular los niveles de calcio en la sangre", "Controlar la presión arterial", "Producir glóbulos rojos"],
+        correct: 1
+      },
+      {
+        q: "Si las paratiroides producen demasiada PTH, ¿qué suele pasar con el calcio en sangre?",
+        options: ["Sube (hipercalcemia)", "Baja (hipocalcemia)", "Se mantiene igual", "Desaparece por completo"],
+        correct: 0
+      },
+      {
+        q: "¿Dónde se ubican generalmente las glándulas paratiroides?",
+        options: ["En el abdomen", "En el pecho, junto al corazón", "Detrás de la tiroides, en el cuello", "En la base del cráneo"],
+        correct: 2
+      }
+    ]
+  }
+];
+
+const TOTAL_TIME = 600; // 10 minutes in seconds
+
+// ---------------- STATE ----------------
+let state = {};
+
+function freshState(){
+  return {
+    roomIndex: 0,
+    qIndex: 0,
+    lives: 3,
+    health: 100,
+    timeLeft: TOTAL_TIME,
+    timerId: null,
+    locked: false,
+    started: false
+  };
+}
+
+// ---------------- SCREEN HELPERS ----------------
+function show(id){
+  ["screen-intro","screen-roomintro","screen-game","screen-win","screen-lose"].forEach(s=>{
+    document.getElementById(s).style.display = (s===id) ? "" : "none";
+  });
+  document.getElementById("monitor").style.display = (id==="screen-game") ? "flex" : "none";
+}
+
+function fmtTime(sec){
+  const m = Math.floor(sec/60).toString().padStart(2,"0");
+  const s = (sec%60).toString().padStart(2,"0");
+  return m+":"+s;
+}
+
+function renderHearts(){
+  const wrap = document.getElementById("hearts");
+  wrap.innerHTML = "";
+  for(let i=0;i<3;i++){
+    const span = document.createElement("span");
+    span.className = "heart" + (i < state.lives ? "" : " lost");
+    span.textContent = "❤️";
+    wrap.appendChild(span);
+  }
+}
+
+function renderHealth(){
+  const fill = document.getElementById("healthFill");
+  fill.style.width = Math.max(state.health,0) + "%";
+  document.getElementById("healthPct").textContent = Math.max(state.health,0);
+  if(state.health <= 30){
+    fill.style.background = "linear-gradient(90deg, #d96b82, #e8a5c0)";
+  } else if(state.health <= 60){
+    fill.style.background = "linear-gradient(90deg, #cf9a63, #e8c99b)";
+  } else {
+    fill.style.background = "linear-gradient(90deg, #7fb997, #cf9a63)";
+  }
+}
+
+function renderRoomProgress(){
+  const wrap = document.getElementById("roomProgress");
+  wrap.innerHTML = "";
+  for(let i=0;i<ROOMS.length;i++){
+    const d = document.createElement("div");
+    d.className = "room-dot" + (i < state.roomIndex ? " done" : (i === state.roomIndex ? " active" : ""));
+    wrap.appendChild(d);
+  }
+}
+
+function updateTimerDisplay(){
+  const el = document.getElementById("timer");
+  el.textContent = fmtTime(state.timeLeft);
+  el.classList.toggle("warning", state.timeLeft <= 60);
+}
+
+// ---------------- GAME FLOW ----------------
+function startGame(){
+  state = freshState();
+  state.started = true;
+  state.timerId = setInterval(tick, 1000);
+  goToRoomIntro();
+}
+
+function tick(){
+  state.timeLeft--;
+  updateTimerDisplay();
+  if(state.timeLeft <= 0){
+    clearInterval(state.timerId);
+    endLose("El tiempo se agotó", "Se acabaron los 10 minutos antes de completar la operación. El paciente necesitaba un diagnóstico más rápido.");
+  }
+}
+
+function goToRoomIntro(){
+  const room = ROOMS[state.roomIndex];
+  document.getElementById("roomEmoji").textContent = room.emoji;
+  document.querySelector("#roomIntroLabel span").textContent = (state.roomIndex+1);
+  document.getElementById("roomIntroTitle").textContent = room.title;
+  document.getElementById("roomIntroDesc").textContent = room.desc;
+  show("screen-roomintro");
+}
+
+function enterRoom(){
+  state.lives = 3; // vidas se regeneran cada sala
+  state.qIndex = 0;
+  document.getElementById("roomNumLabel").textContent = (state.roomIndex+1);
+  renderHearts();
+  renderHealth();
+  renderRoomProgress();
+  updateTimerDisplay();
+  show("screen-game");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  state.locked = false;
+  const room = ROOMS[state.roomIndex];
+  const q = room.questions[state.qIndex];
+  document.getElementById("roomLabelNum").textContent = (state.roomIndex+1);
+  document.getElementById("roomTitleGame").textContent = room.title;
+  document.getElementById("qCount").textContent = "Pregunta " + (state.qIndex+1) + " de " + room.questions.length;
+  document.getElementById("qText").textContent = q.q;
+  document.getElementById("qFeedback").textContent = "";
+  document.getElementById("qFeedback").className = "feedback";
+
+  const optWrap = document.getElementById("qOptions");
+  optWrap.innerHTML = "";
+  q.options.forEach((opt, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "option";
+    btn.textContent = opt;
+    btn.onclick = ()=> answer(idx);
+    optWrap.appendChild(btn);
+  });
+}
+
+function answer(idx){
+  if(state.locked) return;
+  state.locked = true;
+  const room = ROOMS[state.roomIndex];
+  const q = room.questions[state.qIndex];
+  const buttons = document.querySelectorAll("#qOptions .option");
+  const fb = document.getElementById("qFeedback");
+
+  if(idx === q.correct){
+    buttons[idx].classList.add("correct");
+    fb.textContent = "¡Correcto! Signos vitales estables.";
+    fb.className = "feedback ok";
+  } else {
+    buttons[idx].classList.add("wrong");
+    buttons[q.correct].classList.add("correct");
+    state.lives--;
+    const dmg = 25; // 25% fijo por vida perdida
+    state.health -= dmg;
+    fb.textContent = "Incorrecto. El paciente pierde estabilidad (-" + dmg + "%).";
+    fb.className = "feedback bad";
+    renderHearts();
+    renderHealth();
+  }
+  buttons.forEach(b=> b.disabled = true);
+
+  if(state.health <= 0){
+    setTimeout(()=>{
+      clearInterval(state.timerId);
+      endLose("El paciente no resistió", "La barra de estabilidad llegó a 0%. Revisa las respuestas correctas y vuelve a intentarlo.");
+    }, 900);
+    return;
+  }
+
+  setTimeout(nextStep, 1100);
+}
+
+function nextStep(){
+  const room = ROOMS[state.roomIndex];
+  if(state.qIndex < room.questions.length - 1){
+    state.qIndex++;
+    renderQuestion();
+  } else {
+    // room complete
+    if(state.roomIndex < ROOMS.length - 1){
+      state.roomIndex++;
+      goToRoomIntro();
+    } else {
+      clearInterval(state.timerId);
+      endWin();
+    }
+  }
+}
+
+function endWin(){
+  document.getElementById("winTime").textContent = fmtTime(state.timeLeft);
+  document.getElementById("winHealth").textContent = Math.max(state.health,0);
+  show("screen-win");
+}
+
+function endLose(title, text){
+  document.getElementById("loseTitle").textContent = title;
+  document.getElementById("loseText").textContent = text;
+  show("screen-lose");
+}
+
+function resetGame(){
+  if(state.timerId) clearInterval(state.timerId);
+  state = freshState();
+  show("screen-intro");
+}
+
+// init
+show("screen-intro");
+</script>
+</body>
+</html>
